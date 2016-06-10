@@ -18,8 +18,8 @@ public class LabStarter {
 
     public LabStarter() {
 
-        DAOFactory daoFactory = new AuthorsDAOFactory();
-        AuthorDAO authorDAO = daoFactory.getAuthorDAO();
+        XMLDAOFactory daoFactory = new XMLDAOFactory();
+        XMLAuthorDAO authorDAO = daoFactory.getAuthorDAO();
         ModelCreator modelCreator = new ModelCreator(10, 10, 100, authorDAO);
         XMLizer xmlizer = new XMLizer();
         xmlizer.writeToXML(authorDAO);
@@ -29,13 +29,16 @@ public class LabStarter {
             SAXParser parser = factory.newSAXParser();
             SAXDurationCounter saxDurationCounter = new SAXDurationCounter();
             parser.parse(new File(System.getProperty("user.home")+"/Downloads/authors.xml"), saxDurationCounter);
-            log.info("All is ok");
+            log.info("SAX parser is ok");
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
+            log.error(e.getMessage());
         } catch (SAXException e) {
             e.printStackTrace();
+            log.error(e.getMessage());
         } catch (IOException e) {
             e.printStackTrace();
+            log.error(e.getMessage());
         }
     }
 }
