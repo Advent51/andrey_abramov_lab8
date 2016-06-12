@@ -40,5 +40,15 @@ public class LabStarter {
             e.printStackTrace();
             log.error(e.getMessage());
         }
+
+        DBDAOFactory dbdaoFactory = new DBDAOFactory();
+        DBAuthorDAO dbAuthorDAO = dbdaoFactory.getAuthorDAO();
+        dbAuthorDAO.openConnection();
+        dbAuthorDAO.deleteTables();
+        dbAuthorDAO.createTables();
+        //modelCreator = new ModelCreator(10, 10, 100, dbAuthorDAO);
+        dbAuthorDAO.closeConnection();
+        XMLToBD xmlToBD = new XMLToBD();
+        xmlToBD.writeXMLToDB();
     }
 }

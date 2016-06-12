@@ -5,7 +5,7 @@ package com.adventorium.lab8.utils;
  */
 public class DBDAOFactory extends DAOFactory {
     @Override
-    public AuthorDAO getAuthorDAO() {
+    public DBAuthorDAO getAuthorDAO() {
         return new DBAuthorDAO();
     }
 }
