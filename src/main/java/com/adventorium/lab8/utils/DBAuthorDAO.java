@@ -23,7 +23,7 @@ public class DBAuthorDAO implements AuthorDAO {
     private int nextGenreID;
 
     Connection connection;
-    Statement statement;
+    PreparedStatement statement;
 
     public DBAuthorDAO() {
         nextAuthorID = 0;
@@ -36,8 +36,10 @@ public class DBAuthorDAO implements AuthorDAO {
     public Author getAuthor(int id) {
         Author author = null;
         try {
-            statement = connection.createStatement();
-            ResultSet rs = statement.executeQuery("SELECT ID, NAME FROM AUTHOR WHERE ID=" + id + ";");
+            String request = "SELECT ID, NAME FROM AUTHOR WHERE ID=?";
+            statement = connection.prepareStatement(request);
+            statement.setInt(1, id);
+            ResultSet rs = statement.executeQuery();
             while (rs.next()) {
                 int authorID = rs.getInt("id");
                 String name = rs.getString("name");
@@ -58,14 +60,15 @@ public class DBAuthorDAO implements AuthorDAO {
         Album album = null;
         int albumID;
         try {
-            statement = connection.createStatement();
-            ResultSet rs = statement.executeQuery("SELECT ID, NAME, GENRE FROM ALBUM WHERE AUTHOR_ID=" + authorID + ";");
+            String request = "SELECT ID, NAME, GENRE FROM ALBUM WHERE AUTHOR_ID=?";
+            statement = connection.prepareStatement(request);
+            statement.setInt(1, authorID);
+            ResultSet rs = statement.executeQuery();
             while (rs.next()) {
                 albumID = rs.getInt("id");
                 String name = rs.getString("name");
                 String genre = rs.getString("genre");
                 album = new Album(name);
-                //album.addAuthor(author);
                 album.addGenre(genre);
                 getSong(albumID, album);
                 author.addAlbum(album);
@@ -84,8 +87,10 @@ public class DBAuthorDAO implements AuthorDAO {
         Song song = null;
         int songID;
         try {
-            statement = connection.createStatement();
-            ResultSet rs = statement.executeQuery("SELECT ID, NAME, DURATION FROM SONG WHERE ALBUM_ID=" + albumID + ";");
+            String request = "SELECT ID, NAME, DURATION FROM SONG WHERE ALBUM_ID=?";
+            statement = connection.prepareStatement(request);
+            statement.setInt(1, albumID);
+            ResultSet rs = statement.executeQuery();
             while (rs.next()) {
                 songID = rs.getInt("id");
                 String name = rs.getString("name");
@@ -107,8 +112,9 @@ public class DBAuthorDAO implements AuthorDAO {
     public Collection<Author> getAuthors() {
         Collection<Author> retrievedAuthors = new ArrayList<>();
         try {
-            statement = connection.createStatement();
-            ResultSet rs = statement.executeQuery("SELECT ID, NAME FROM AUTHOR;");
+            String request = "SELECT ID, NAME FROM AUTHOR;";
+            statement = connection.prepareStatement(request);
+            ResultSet rs = statement.executeQuery();
             while (rs.next()) {
                 int authorID = rs.getInt("id");
                 String name = rs.getString("name");
@@ -129,14 +135,16 @@ public class DBAuthorDAO implements AuthorDAO {
 
     @Override
     public int addAuthor(Author author) {
-        if(author.getAlbums()==null){
+        if (author.getAlbums() == null) {
             return -1;
         }
-        ++nextAuthorID;
-        String sql = "INSERT INTO AUTHOR (ID, NAME) VALUES (" + nextAuthorID + ", '" + author.getName() + "');";
         try {
-            statement = connection.createStatement();
-            statement.executeUpdate(sql);
+            ++nextAuthorID;
+            String sql = "INSERT INTO AUTHOR VALUES (?,?)";
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, nextAuthorID);
+            statement.setString(2, author.getName());
+            statement.executeUpdate();
             log.info("Author added");
             statement.close();
             log.info("Statement closed");
@@ -149,16 +157,18 @@ public class DBAuthorDAO implements AuthorDAO {
     }
 
     public int addAlbum(Album album, int authorID) {
-        if(album.getSongs()==null){
+        if (album.getSongs() == null) {
             return -1;
         }
-        ++nextAlbumID;
-        String sql = "INSERT INTO ALBUM VALUES (" +
-                nextAlbumID + ", '" + album.getName() + "', '" +
-                album.getGenres() + "', " + authorID + ");";
         try {
-            statement = connection.createStatement();
-            statement.executeUpdate(sql);
+            ++nextAlbumID;
+            String sql = "INSERT INTO ALBUM VALUES (?,?,?,?)";
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, nextAlbumID);
+            statement.setString(2, album.getName());
+            statement.setString(3, album.getGenres().toString());
+            statement.setInt(4, authorID);
+            statement.executeUpdate();
             log.info("Album added");
             statement.close();
             log.info("Statement closed");
@@ -171,12 +181,15 @@ public class DBAuthorDAO implements AuthorDAO {
     }
 
     public int addSong(Song song, int albumID) {
-        ++nextSongID;
-        String sql = "INSERT INTO SONG VALUES (" + nextSongID + ", '" + song.getName() + "', " +
-                (int) song.getDuration() + ", " + albumID + ");";
         try {
-            statement = connection.createStatement();
-            statement.executeUpdate(sql);
+            ++nextSongID;
+            String sql = "INSERT INTO SONG VALUES (?,?,?,?)";
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, nextSongID);
+            statement.setString(2, song.getName());
+            statement.setInt(3, (int) song.getDuration());
+            statement.setInt(4, albumID);
+            statement.executeUpdate();
             log.info("Song added");
             statement.close();
             log.info("Statement closed");
@@ -190,10 +203,11 @@ public class DBAuthorDAO implements AuthorDAO {
     @Override
     public boolean deleteAuthor(int id) {
         boolean deleted = false;
-        String sql = "DELETE FROM AUTHOR WHERE ID=" + id + ";";
         try {
-            statement = connection.createStatement();
-            statement.executeUpdate(sql);
+            String sql = "DELETE FROM AUTHOR WHERE ID=?";
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, id);
+            statement.executeUpdate();
             log.info("Author deleted");
             statement.close();
             log.info("Statement closed");
@@ -207,57 +221,17 @@ public class DBAuthorDAO implements AuthorDAO {
 
     @Override
     public void updateAuthor(int id, Author author) {
-        String sql = "UPDATE AUTHOR SET " +
-                "NAME=" + author.getName() +
-                " WHERE AUTHOR.ID=" + id + ";";
         try {
-            statement = connection.createStatement();
-            statement.executeUpdate(sql);
+            String sql = "UPDATE AUTHOR SET NAME=? WHERE AUTHOR.ID=?";
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, author.getName());
+            statement.setInt(2, id);
+            statement.executeUpdate();
             log.info("Author updated");
             statement.close();
             log.info("Statement closed");
         } catch (SQLException e) {
             log.error("Author not updated or connection closing aborted");
-            e.printStackTrace();
-        }
-    }
-
-    public void createTables() {
-        String sql = "CREATE TABLE AUTHOR " +
-                "(ID       INT      PRIMARY KEY NOT NULL," +
-                "NAME      CHAR(500) NOT NULL);" +
-                "CREATE TABLE ALBUM" +
-                "(ID        INT     PRIMARY KEY NOT NULL," +
-                "NAME       CHAR(500) NOT NULL," +
-                "GENRE      CHAR(500)," +
-                "AUTHOR_ID  INT     REFERENCES AUTHOR(ID) ON DELETE CASCADE ON UPDATE CASCADE);" +
-                "CREATE TABLE SONG" +
-                "(ID        INT     PRIMARY KEY NOT NULL," +
-                "NAME       CHAR(500) NOT NULL," +
-                "DURATION   INT," +
-                "ALBUM_ID   INT     REFERENCES ALBUM(ID) ON DELETE CASCADE ON UPDATE CASCADE);";
-        try {
-            statement = connection.createStatement();
-            statement.executeUpdate(sql);
-            log.info("Tables created");
-            statement.close();
-            log.info("Statement closed");
-        } catch (SQLException e) {
-            log.error("Tables not created or connection closing aborted");
-            e.printStackTrace();
-        }
-    }
-
-    public void deleteTables() {
-        String sql = "DROP TABLE AUTHOR, ALBUM, SONG;";
-        try {
-            statement = connection.createStatement();
-            statement.executeUpdate(sql);
-            log.info("Tables deleted");
-            statement.close();
-            log.info("Statement closed");
-        } catch (SQLException e) {
-            log.error("Tables not created or connection closing aborted");
             e.printStackTrace();
         }
     }
@@ -271,7 +245,6 @@ public class DBAuthorDAO implements AuthorDAO {
 
         try {
             connection = DriverManager.getConnection(url, properties);
-            //statement = connection.createStatement();
             log.info("DB connected successfully");
         } catch (SQLException e) {
             log.error("DB is not connected");
