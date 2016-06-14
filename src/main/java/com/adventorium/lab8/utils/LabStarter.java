@@ -22,7 +22,7 @@ public class LabStarter {
         XMLAuthorDAO authorDAO = daoFactory.getAuthorDAO();
         ModelCreator modelCreator = new ModelCreator(10, 10, 100, authorDAO);
         XMLizer xmlizer = new XMLizer();
-        xmlizer.writeToXML(authorDAO);
+        xmlizer.writeToXML(authorDAO, System.getProperty("user.home") + "/Downloads/authors.xml");
 
         try {
             SAXParserFactory factory = SAXParserFactory.newInstance();

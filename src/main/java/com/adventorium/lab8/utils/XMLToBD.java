@@ -11,7 +11,7 @@ import java.util.Collection;
 public class XMLToBD {
     public void writeXMLToDB(){
         XMLizer xmLizer = new XMLizer();
-        Collection<Author> authors = new ArrayList<>(xmLizer.readXML());
+        Collection<Author> authors = new ArrayList<>(xmLizer.readXML(System.getProperty("user.home") + "/Downloads/authors.xml"));
         DBAuthorDAO dbAuthorDAO = new DBAuthorDAO();
         dbAuthorDAO.openConnection();
         authors.forEach(author -> dbAuthorDAO.addAuthor(author));

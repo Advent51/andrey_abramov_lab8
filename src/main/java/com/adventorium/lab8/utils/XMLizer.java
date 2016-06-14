@@ -15,22 +15,26 @@ import java.util.Collection;
  * Created by Андрей on 04.06.2016.
  */
 public class XMLizer {
-    public void writeToXML(XMLAuthorDAO authorDAO) {
+    public boolean writeToXML(XMLAuthorDAO authorDAO, String filePath) {
         try {
-            File file = new File(System.getProperty("user.home") + "/Downloads/authors.xml");
+            //File file = new File(System.getProperty("user.home") + "/Downloads/authors.xml");
+            File file = new File(filePath);
             JAXBContext context = JAXBContext.newInstance(XMLAuthorDAO.class);
             Marshaller marshaller = context.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             marshaller.marshal(authorDAO, file);
+            return true;
         } catch (JAXBException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
-    public Collection<Author> readXML() {
+    public Collection<Author> readXML(String filePath) {
         Collection<Author> authors = null;
         try {
-            File file = new File(System.getProperty("user.home") + "/Downloads/authors.xml");
+            //File file = new File(System.getProperty("user.home") + "/Downloads/authors.xml");
+            File file = new File(filePath);
             JAXBContext context = JAXBContext.newInstance(XMLAuthorDAO.class);
             Unmarshaller jaxbUnmarshaller = context.createUnmarshaller();
             XMLAuthorDAO xmlauthorDAO = (XMLAuthorDAO) jaxbUnmarshaller.unmarshal(file);
